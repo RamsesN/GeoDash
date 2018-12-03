@@ -26,9 +26,11 @@ public class GeoDash extends JPanel implements KeyListener{
     double velocityX;
     double velocityY;
     double accelerationY;
+    double ObsX = WIDTH-60;
+    double ObsY = HEIGHT-60;
     
-    
-    Sphere Something = new Sphere(positionX, positionY);    
+    Sphere Something = new Sphere(positionX, positionY);
+    Obstacle thing = new Obstacle(ObsX, ObsY);
     class Runner implements Runnable{
         
         public void run()
@@ -37,6 +39,7 @@ public class GeoDash extends JPanel implements KeyListener{
             		Something.move(); 	
             		Something.bounce();
             		Something.jump();
+		        thing.move();
             	  
                 repaint();
                 try{
@@ -102,11 +105,12 @@ public class GeoDash extends JPanel implements KeyListener{
        
         
         g.setColor(Color.WHITE);
-       
-        
-        //your code here for drawing the other spheres
-    	
-        g.fillOval((int)Something.positionX, (int)Something.positionY,  RADIUS,  RADIUS);
+	g.fillOval((int)Something.positionX, (int)Something.positionY,  RADIUS,  RADIUS);
+
+	g.setColor(Color.BLUE);
+	    	    // This is going to be where I add more obstacles
+	g.fillRect((int)thing.ObsX,(int)thing.ObsY, 60, 60);
+
     	
        String title = "GeoDash";
        g.setColor(Color.WHITE);
@@ -164,7 +168,23 @@ class Sphere {
 	public void Up(boolean input) {
 		up = input;
 	}
-
-
+}
+class Obstacle{
+	public static final int WIDTH = 1024;
+	public static final int HEIGHT = 768;
+	public static final int RADIUS = 50;
+		double ObsX;
+		double ObsY;
+		double velocityX = 5;
+		double velocityY = 0; 
+		double gravity = 0;
+		
+	public Obstacle(double ObsX, double ObsY) {
+		this.ObsX = ObsX;
+		this.ObsY = ObsY;
+	}
+	public void move() {
+	        this.ObsX -= velocityX; 
+	}
 }
 
