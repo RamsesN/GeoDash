@@ -2,41 +2,42 @@ import javax.swing.JPanel;
 import javax.swing.JFrame;
 import java.awt.Color;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Rectangle;
 import java.awt.Dimension;
 import java.util.Random;
 import java.awt.event.KeyListener;
 import java.awt.event.KeyEvent;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.Scanner;
+import java.io.*;
 
 public class GeoDash extends JPanel implements KeyListener{
     public static final int WIDTH = 1024;
     public static final int HEIGHT = 768;
     public static final int FPS = 60;
     public static final int RADIUS = 50;
-    double positionX; 
-    double positionY;
+    double positionX = 100; 
+    double positionY = HEIGHT;
     //Note: The following are not used yet, you should use them in writing your code.
     double velocityX;
     double velocityY;
     double accelerationY;
     
+    
     Sphere Something = new Sphere(positionX, positionY);    
     class Runner implements Runnable{
-        public Runner()
-        {
-            positionX = 275;  
-            positionY = HEIGHT - 275;
-            velocityX = 100; 
-            velocityY = -100; 
-            accelerationY = 98;	 
-        }
         
         public void run()
         {
             while(true){
             		Something.move(); 	
             		Something.bounce();
-            	
-                //Implement gravity here (Bonus)
+            		Something.jump();
+            	  
                 repaint();
                 try{
                     Thread.sleep(1000/FPS);
@@ -53,12 +54,13 @@ public class GeoDash extends JPanel implements KeyListener{
     	System.out.println("You pressed down: " + c);
     	if (c == ' ') 
     		Something.Up(true);
+    	else if(c == 'q')
+    		System.exit(1);
     }
     public void keyReleased(KeyEvent e) {
     	char c=e.getKeyChar();
     	System.out.println("\tYou let go of: " + c);
-    	if (c == ' ') 
-    		Something.Up(false);
+   
 
     }
     public void keyTyped(KeyEvent e) {
@@ -106,12 +108,20 @@ public class GeoDash extends JPanel implements KeyListener{
     	
         g.fillOval((int)Something.positionX, (int)Something.positionY,  RADIUS,  RADIUS);
     	
+       String title = "GeoDash";
+       g.setColor(Color.WHITE);
+       g.drawString(title, WIDTH/2, 200);
+       
+       Rectangle quitButton = new Rectangle(10, 50, 100, 37);
+       g.drawString("Quit = q", quitButton.x + 19, quitButton.y + 29);
+       Graphics2D g2d = (Graphics2D) g;
+       g2d.draw(quitButton);
     }    
 }
 
 class Sphere {
-    double positionX = 275;
-    double positionY = 768 - 275;
+    double positionX;
+    double positionY;
     double velocityX = 0;
     double velocityY = 0;
     double gravity = 0.5;
@@ -130,9 +140,15 @@ class Sphere {
          this.positionY += velocityY; 
          this.velocityY += gravity;
          
-         if (up) 
-        	 velocityY += -2;
+       
     }
+	
+	public void jump() {
+		 if (up) {
+        	 velocityY += -10;
+        	 up = false;
+          }
+	}
 
 	public void bounce() {
 		
@@ -148,8 +164,7 @@ class Sphere {
 	public void Up(boolean input) {
 		up = input;
 	}
-	public void notUp (boolean input) {
-		up = input;
-	}
+
 
 }
+
