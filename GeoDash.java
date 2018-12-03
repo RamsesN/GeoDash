@@ -21,16 +21,17 @@ public class GeoDash extends JPanel implements KeyListener{
     public static final int FPS = 60;
     public static final int RADIUS = 50;
     double positionX = 100; 
-    double positionY = HEIGHT;
+    double positionY = HEIGHT-RADIUS;
     //Note: The following are not used yet, you should use them in writing your code.
     double velocityX;
     double velocityY;
     double accelerationY;
-    double ObsX = WIDTH-60;
-    double ObsY = HEIGHT-60;
+    double ObsX = WIDTH-50;
+    double ObsY = HEIGHT-50;
     
     Sphere Something = new Sphere(positionX, positionY);
-    Obstacle thing = new Obstacle(ObsX, ObsY);
+    Obstacle thing = new Obstacle(ObsX, ObsY, Something);
+    
     class Runner implements Runnable{
         
         public void run()
@@ -39,7 +40,7 @@ public class GeoDash extends JPanel implements KeyListener{
             		Something.move(); 	
             		Something.bounce();
             		Something.jump();
-		        thing.move();
+		        thing.move(Something);
             	  
                 repaint();
                 try{
@@ -139,6 +140,12 @@ class Sphere {
 		this.positionX = positionX;
 		this.positionY = positionY;
 	}
+	public double getX() {
+		return this.positionX;
+	}
+	public double getY() {
+		return this.positionY;
+	}
 	public void move() {
 
          this.positionY += velocityY; 
@@ -173,18 +180,37 @@ class Obstacle{
 	public static final int WIDTH = 1024;
 	public static final int HEIGHT = 768;
 	public static final int RADIUS = 50;
-		double ObsX;
-		double ObsY;
-		double velocityX = 5;
-		double velocityY = 0; 
-		double gravity = 0;
+	double ObsX;
+	double ObsY;
+	double velocityX = 5;
+	double velocityY = 0; 
+	double gravity = 0;
 		
-	public Obstacle(double ObsX, double ObsY) {
+	public Obstacle(double ObsX, double ObsY, Sphere Something) {
 		this.ObsX = ObsX;
 		this.ObsY = ObsY;
 	}
-	public void move() {
-	        this.ObsX -= velocityX; 
+	public void move(Sphere Something) {
+		
+		if (this.ObsX > Something.positionX+RADIUS) {
+        	this.ObsX -= velocityX; 
+		}
+		else if (this.ObsX < Something.positionX+RADIUS && this.ObsX > Something.positionX - 50){
+			if (this.ObsY > Something.positionY) {
+				this.ObsX -= velocityX;
+				if (Something.positionY + RADIUS > HEIGHT - RADIUS) {
+		        	Something.positionY = HEIGHT - 100 ;
+		           }
+			}
+			else 
+				System.exit(1);
+		}
+		else {
+				this.ObsX -= velocityX;
+		}
+
+	         
+
 	}
 }
 
