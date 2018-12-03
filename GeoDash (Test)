@@ -30,7 +30,7 @@ public class GeoDash extends JPanel implements KeyListener{
     double ObsX = WIDTH-50;
     double ObsY = HEIGHT-50;
     int numObs = 20;
-    Obstacle things[] = new Obstacle[20];
+    Obstacle things[] = new Obstacle[numObs];
     // ArrayList<Obstacle> al = new ArrayList<Obstacle>();
     Sphere Something = new Sphere(positionX, positionY);
     Obstacle thing = new Obstacle(ObsX, ObsY, Something);
@@ -47,10 +47,11 @@ public class GeoDash extends JPanel implements KeyListener{
         public void run()
         {
             while(true){
-            		Something.move(); 	
-            		Something.bounce();
-            		Something.jump();
-		        thing.move(Something);
+
+            		Something.move(things); 	
+    			
+            		Something.bounce();    
+ 		        thing.move(Something);
 			for(int i = 0; i < 20; i++){
 			    things[i].move(Something);
 			}
@@ -161,20 +162,43 @@ class Sphere {
 	public double getY() {
 		return this.positionY;
 	}
-	public void move() {
+	public void move(Obstacle things[]) {
 
          this.positionY += velocityY; 
          this.velocityY += gravity;
          
-       
-    }
-	
-	public void jump() {
-		 if (up) {
+         for (int i=0; i < 20; i++) {
+        	 
+         if (things[i].ObsX > this.positionX+RADIUS) {
+     	    things[i].ObsX -= things[i].velocityX; 
+     	}
+     	else if (things[i].ObsX < this.positionX+RADIUS && things[i].ObsX > this.positionX - 50){
+     	    if (things[i].ObsY > this.positionY) {
+     		things[i].ObsX -= things[i].velocityX;
+     			if (this.positionY + RADIUS > HEIGHT - RADIUS) {
+     				this.positionY = HEIGHT - 100 ;
+     			}
+     	    } 
+     	    else 
+     		System.exit(1);
+     	}
+     	else {
+     	    things[i].ObsX -= things[i].velocityX;
+     	}	
+     
+         }
+ 
+         
+         if (up) {
         	 velocityY += -10;
         	 up = false;
-          }
-	}
+         }
+       
+         
+         
+    }
+	
+	
 
 	public void bounce() {
 		
@@ -207,21 +231,8 @@ class Obstacle{
 	}
     public void move(Sphere Something) {
 	
-	if (this.ObsX > Something.positionX+RADIUS) {
+	
 	    this.ObsX -= velocityX; 
-	}
-	else if (this.ObsX < Something.positionX+RADIUS && this.ObsX > Something.positionX - 50){
-	    if (this.ObsY > Something.positionY) {
-		this.ObsX -= velocityX;
-		if (Something.positionY + RADIUS > HEIGHT - RADIUS) {
-		    Something.positionY = HEIGHT - 100 ;
-		}
-	    }
-	    else 
-		System.exit(1);
-	}
-	else {
-	    this.ObsX -= velocityX;
-	}	
+	
     }
 }
