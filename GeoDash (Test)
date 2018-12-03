@@ -30,18 +30,19 @@ public class GeoDash extends JPanel implements KeyListener{
     double ObsX = WIDTH-50;
     double ObsY = HEIGHT-50;
     int numObs = 20;
-    Obstacle things[];
+    Obstacle things[] = new Obstacle[20];
     // ArrayList<Obstacle> al = new ArrayList<Obstacle>();
     Sphere Something = new Sphere(positionX, positionY);
     Obstacle thing = new Obstacle(ObsX, ObsY, Something);
 
-     for(int y = 0; y<numObs; y++){
-	for(int t = 0; t<= 2000; t+=100){
-	    things[y] = new Obstacle(ObsX+t,ObsY,Something);
-	}
-	}
-
     class Runner implements Runnable{
+    	
+        public Runner() {
+        	for(int i = 0; i<numObs; i++){
+        		    things[i] = new Obstacle(ObsX+(100*i),ObsY,Something);
+        	}
+
+        }
         
         public void run()
         {
@@ -120,12 +121,12 @@ public class GeoDash extends JPanel implements KeyListener{
         g.setColor(Color.WHITE);
 	g.fillOval((int)Something.positionX, (int)Something.positionY,  RADIUS,  RADIUS);
 
+	g.setColor(Color.BLUE);
+	
 	for(int i = 0; i<numObs; i++){
-	    for(int t = 0; t<= 2000; t+=100){
-		g.setColor(Color.BLUE);
-		g.fillRect((int)things[i].ObsX+t,(int)things[i].ObsY, 60, 60);
+		g.fillRect((int)things[i].ObsX+(200*i),(int)things[i].ObsY, 60, 60);
     }
-}
+
     	
        String title = "GeoDash";
        g.setColor(Color.WHITE);
