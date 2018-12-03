@@ -112,7 +112,7 @@ class Sphere {
 		 if (this.positionX < 0) {
            	velocityX = -velocityX;
            }
-         else if (this.positionX + RADIUS > WIDTH) {
+         else if (this.positionX + RADIUS > WIDTH) { //hello
            	velocityX = -velocityX;
            }   
          if (this.positionY < 0) {
