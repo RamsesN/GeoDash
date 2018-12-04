@@ -1,4 +1,5 @@
 
+
 import javax.swing.JPanel;
 import javax.swing.JFrame;
 import java.awt.Color;
@@ -40,7 +41,7 @@ public class GeoDash extends JPanel implements KeyListener{
     	
         public Runner() {
         	for(int i = 0; i<numObs; i++){
-        		    things[i] = new Obstacle(ObsX+(100*i),ObsY,Something);
+        		    things[i] = new Obstacle(ObsX+(200*i),ObsY,Something);
         	}
 
         }
@@ -126,7 +127,7 @@ public class GeoDash extends JPanel implements KeyListener{
 	g.setColor(Color.BLUE);
 	
 	for(int i = 0; i<numObs; i++){
-		g.fillRect((int)things[i].ObsX+(200*i),(int)things[i].ObsY, 60, 60);
+		g.fillRect((int)things[i].ObsX,(int)things[i].ObsY, 60, 60);
     }
 
     	
@@ -142,8 +143,8 @@ public class GeoDash extends JPanel implements KeyListener{
 }
 
 class Sphere {
-    double positionX;
-    double positionY;
+    double positionX = 100;
+    double positionY = HEIGHT - RADIUS;
     double velocityX = 0;
     double velocityY = 0;
     double gravity = 0.5;
@@ -169,27 +170,10 @@ class Sphere {
          this.velocityY += gravity;
          
          for (int i=0; i < 20; i++) {
-        	 
-         if (things[i].ObsX > this.positionX+RADIUS) {
-     	    things[i].ObsX -= things[i].velocityX; 
-     	}
-     	else if (things[i].ObsX < this.positionX+RADIUS && things[i].ObsX > this.positionX - 60){
-     	    if (things[i].ObsY > this.positionY) {
-     		things[i].ObsX -= things[i].velocityX;
-     			if (this.positionY + RADIUS > HEIGHT - RADIUS) {
-     				while(this.positionX - RADIUS > things[i].length() + things[i].ObsX) {
-     				this.positionY = HEIGHT - 100 ;
-     				} 
-     				}
-     	    } 
-     	    else {
-     		//System.exit(1);
-     	    	while(this.positionX- RADIUS < things[i].ObsX && )
-     	    	System.out.println("Hit");
-     	}
-     	else {
-     	    things[i].ObsX -= things[i].velocityX;
-     	}	
+        	 if(things[i].ObsX == this.positionX+RADIUS && things[i].ObsY < this.positionY) {
+        		 System.out.println(things[i].ObsX);
+        	 }
+
      
          }
  
@@ -229,7 +213,7 @@ class Obstacle{
 	public static final int RADIUS = 50;
 	double ObsX;
 	double ObsY;
-	double velocityX = 1;
+	double velocityX = 3;
 	double velocityY = 0; 
 	double gravity = 0;
 	double length = 60;
