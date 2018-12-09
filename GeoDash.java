@@ -8,7 +8,7 @@ import java.awt.Dimension;
 import java.util.Random;
 import java.awt.event.KeyListener;
 import java.awt.event.KeyEvent;
-
+import java.util.concurrent.TimeUnit;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -21,27 +21,34 @@ public class GeoDash extends JPanel implements KeyListener{
     public static final int FPS = 60;
     public static final int RADIUS = 50;
     double positionX = 100; 
-    double positionY = HEIGHT-RADIUS;
+    double positionY = HEIGHT - RADIUS;
+    double ObsX = WIDTH - 50;
+    double ObsY = HEIGHT - RADIUS;
     //Note: The following are not used yet, you should use them in writing your code.
     double velocityX;
     double velocityY;
-    double accelerationY;
-    double ObsX = WIDTH-50;
-    double ObsY = HEIGHT-50;
+    int num = 20;
+    Obstacle[] Array = new Obstacle[num];
     
-    Sphere Something = new Sphere(positionX, positionY);
-    Obstacle thing = new Obstacle(ObsX, ObsY, Something);
-    
+    Sphere Something = new Sphere(positionX, positionY);    
     class Runner implements Runnable{
-        
+        public Runner() {
+        	for (int i = 0; i < Array.length; i++ ) { 
+    		    Array[i] = new Obstacle(ObsX+(200*i), ObsY);
+    			 }
+        }
         public void run()
         {
+        	
             while(true){
-            		Something.move(); 	
-            		Something.bounce();
-            		Something.jump();
-		        thing.move(Something);
-            	  
+            	
+            	Something.move(Array); 	
+            	
+            	Something.bounce();
+            	Something.jump();
+            	for (int i = 0; i < Array.length; i++ ) { 
+            		Array[i].move();
+            	}
                 repaint();
                 try{
                     Thread.sleep(1000/FPS);
@@ -85,7 +92,7 @@ public class GeoDash extends JPanel implements KeyListener{
     }
     
     public static void main(String[] args){
-        JFrame frame = new JFrame("Physics!!!");
+        JFrame frame = new JFrame("GEODASH!!!");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         GeoDash world = new GeoDash();
         frame.setContentPane(world);
@@ -106,12 +113,17 @@ public class GeoDash extends JPanel implements KeyListener{
        
         
         g.setColor(Color.WHITE);
-	g.fillOval((int)Something.positionX, (int)Something.positionY,  RADIUS,  RADIUS);
-
-	g.setColor(Color.BLUE);
-	    	    // This is going to be where I add more obstacles
-	g.fillRect((int)thing.ObsX,(int)thing.ObsY, 60, 60);
-
+       
+        
+        //your code here for drawing the other spheres
+    	
+        g.fillOval((int)Something.positionX, (int)Something.positionY,  RADIUS,  RADIUS);
+        
+        
+        //obstacle
+    	for (int i = 0; i < Array.length; i++ ) { 
+    		g.fillRect((int)Array[i].ObsX,(int)Array[i].ObsY, 50, 50);
+    	}
     	
        String title = "GeoDash";
        g.setColor(Color.WHITE);
@@ -140,24 +152,36 @@ class Sphere {
 		this.positionX = positionX;
 		this.positionY = positionY;
 	}
-	public double getX() {
-		return this.positionX;
-	}
-	public double getY() {
-		return this.positionY;
-	}
-	public void move() {
+	public void move(Obstacle Array[]) {
 
          this.positionY += velocityY; 
          this.velocityY += gravity;
          
-       
-    }
+         for (int i = 0; i < Array.length; i++ ) { 
+        	 
+        	 if (Array[i].ObsX < this.positionX+RADIUS && Array[i].ObsX > this.positionX - RADIUS){
+        		 if (Array[i].ObsY > this.positionY) {
+         			 if (this.positionY + RADIUS > HEIGHT - RADIUS) {
+        				 this.velocityY = 0 ;
+        				 jump();
+        			 } 
+         			 
+        		 }
+         			 else {
+              	    	 System.exit(1);
+              		 }
+        	 }
+      	    
+         }
+         
+    	 }
 	
 	public void jump() {
-		 if (up) {
+		 if (up /*&& this.positionY == HEIGHT - RADIUS*/) {
+			 if(velocityY == 0 ) {
         	 velocityY += -10;
         	 up = false;
+			 }
           }
 	}
 
@@ -175,42 +199,48 @@ class Sphere {
 	public void Up(boolean input) {
 		up = input;
 	}
+
+
 }
+
 class Obstacle{
-	public static final int WIDTH = 1024;
-	public static final int HEIGHT = 768;
-	public static final int RADIUS = 50;
 	double ObsX;
 	double ObsY;
-	double velocityX = 5;
+	double velocityX = 4;
 	double velocityY = 0; 
 	double gravity = 0;
 		
-	public Obstacle(double ObsX, double ObsY, Sphere Something) {
+	public Obstacle(double ObsX, double ObsY) {
 		this.ObsX = ObsX;
 		this.ObsY = ObsY;
 	}
-	public void move(Sphere Something) {
-		
-		if (this.ObsX > Something.positionX+RADIUS) {
-        	this.ObsX -= velocityX; 
-		}
-		else if (this.ObsX < Something.positionX+RADIUS && this.ObsX > Something.positionX - 50){
-			if (this.ObsY > Something.positionY) {
-				this.ObsX -= velocityX;
-				if (Something.positionY + RADIUS > HEIGHT - RADIUS) {
-		        	Something.positionY = HEIGHT - 100 ;
-		           }
-			}
-			else 
-				System.exit(1);
-		}
-		else {
-				this.ObsX -= velocityX;
-		}
-
-	         
-
-	}
+	
+    public void move() {
+	    this.ObsX -= velocityX; 
+    }
 }
 
+class Score
+{
+	public static void main(String[] args) throws InterruptedException {
+ 
+		long startTime = System.nanoTime();
+
+		/* ... the code being measured starts ... */
+
+		// sleep for 5 seconds
+		TimeUnit.SECONDS.sleep(5);
+
+		/* ... the code being measured ends ... */
+
+		long endTime = System.nanoTime();
+
+		// get difference of two nanoTime values
+		long timeElapsed = endTime - startTime;
+
+		System.out.println("Execution time in nanoseconds  : " + timeElapsed);
+
+		System.out.println("Execution time in milliseconds : " + 
+								timeElapsed / 1000000);
+	}
+}
