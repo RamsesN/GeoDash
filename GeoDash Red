@@ -20,28 +20,24 @@ public class GeoDash2 extends JPanel implements KeyListener{
     public static final int HEIGHT = 768;
     public static final int FPS = 60;
     public static final int RADIUS = 50;
-    double positionX = 100; 
-    double positionY = HEIGHT - RADIUS;
-    double ObsX = WIDTH - 50;
-    double ObsY = HEIGHT - RADIUS;
-    double velocityX;
-    double velocityY;
+
+
     String score;
-    int num = 10;
+    int num = 5;
     int num2 = 5;
     Obstacle[] Array = new Obstacle[num]; 
     Obstacle[] Array2 = new Obstacle[num2];
-    Sphere Something = new Sphere(positionX, positionY);   
+    Sphere Something = new Sphere();   
     boolean jumping;
 
     
     class Runner implements Runnable{
         public Runner() {
         	for (int i = 0; i < Array.length; i++ ) { 
-    		    Array[i] = new Obstacle(ObsX+(400*i), ObsY);
+    		    Array[i] = new Obstacle(i, 0, 400);
     			 }
         	for (int j = 0; j < Array2.length; j++ ) { 
-    		    Array2[j] = new Obstacle(ObsX+(400*j)+(Array.length*400), ObsY);
+    		    Array2[j] = new Obstacle(j, Array.length, 400); //fix
     			 }
         }
         public void run()
@@ -52,7 +48,7 @@ public class GeoDash2 extends JPanel implements KeyListener{
             	Something.move(); 	
             	Something.blueSquareCollision(Array);
             	Something.redSquareCollision(Array2);
-            	Something.bounce();	
+            	Something.ground();	
             	if (jumping) {
             		Something.jump();
             		jumping = false;
@@ -120,16 +116,16 @@ public class GeoDash2 extends JPanel implements KeyListener{
         g.fillRect(0, 0, WIDTH, HEIGHT);
         //player
         g.setColor(Color.WHITE);
-        g.fillRect((int)Something.positionX, (int)Something.positionY,  RADIUS,  RADIUS);
+        g.fillRect((int)Something.positionX, (int)Something.positionY,  (int)Something.side,  (int)Something.side);
         //obstacle
         g.setColor(Color.BLUE);
     	for (int i = 0; i < Array.length; i++ ) { 
-    		g.fillRect((int)Array[i].ObsX,(int)Array[i].ObsY, RADIUS, RADIUS);
+    		g.fillRect((int)Array[i].ObsX,(int)Array[i].ObsY, (int)Array[i].side, (int)Array[i].side);
     	}
     	//red
     	g.setColor(Color.RED);
     	for (int i = 0; i < Array2.length; i++ ) { 
-    		g.fillRect((int)Array2[i].ObsX,(int)Array2[i].ObsY, RADIUS, RADIUS);
+    		g.fillRect((int)Array2[i].ObsX,(int)Array2[i].ObsY, (int)Array2[i].side, (int)Array2[i].side);
     	}
     	//title
         String title = "GEODASH";
@@ -152,38 +148,35 @@ public class GeoDash2 extends JPanel implements KeyListener{
 }*/
 
 class Sphere {
-    double positionX;
-    double positionY;
-    double velocityX = 0;
     double velocityY = 0;
     double gravity = 0.4;
+    double side = 50;
+    double ground = 70;
+    double positionX = 100;
+    double positionY = HEIGHT - side - ground;
     boolean canjump = false;
     int speed = 500;
   
     public static final int WIDTH = 1024;
     public static final int HEIGHT = 768;
-    public static final int RADIUS = 50;
 
-	public Sphere(double positionX, double positionY) {
-		this.positionX = positionX;
-		this.positionY = positionY;
-	}
+	
 	public void move() {
          this.positionY += velocityY; 
          this.velocityY += gravity;
 	}
 	public boolean blueOverlaps (Obstacle input) {
-	    return positionX <= input.ObsX + 50 && positionX + 50 >= input.ObsX && positionY <= input.ObsY + 50 && positionY + 50 > input.ObsY;
+	    return positionX <= input.ObsX + input.side && positionX + side >= input.ObsX && positionY <= input.ObsY + input.side && positionY + side > input.ObsY;
 	}          
 	public boolean redOverlaps (Obstacle input) {
-	    return positionX <= input.ObsX + 50 && positionX + 50 >= input.ObsX && positionY <= input.ObsY + 50 && positionY + 50 >= input.ObsY;
+		return positionX <= input.ObsX + input.side && positionX + side >= input.ObsX && positionY <= input.ObsY + input.side && positionY + side >= input.ObsY;
 	}   
 	public boolean blueSquareCollision(Obstacle input[]) {
         for (int i = 0; i < input.length; i++ ) { 	 
         	if(this.blueOverlaps(input[i])) {									
-        				if (this.positionY + RADIUS > input[i].ObsY) {      //RAD>  if base of sphere lower than top of obs
+        				if (this.positionY + side > input[i].ObsY) {      //RAD>  if base of sphere lower than top of obs
         					this.velocityY = 0;	
-        					this.positionY = HEIGHT - 2*RADIUS;  // iffy
+        					this.positionY  = HEIGHT - input[i].ground - input[i].side - side;  // iffy
         					canjump = true;
         				} 
         		return false;
@@ -194,9 +187,9 @@ class Sphere {
 	public boolean redSquareCollision(Obstacle input[]) {
         for (int i = 0; i < input.length; i++ ) { 	 
         	if(this.redOverlaps(input[i])) {								
-        				if (this.positionY + RADIUS > input[i].ObsY) {      //RAD>  if base of sphere lower than top of obs
+        				if (this.positionY + side > input[i].ObsY) {      //RAD>  if base of sphere lower than top of obs
         					this.velocityY = 0;	
-        					this.positionY = HEIGHT - 2*RADIUS;  // iffy
+        					this.positionY  = HEIGHT - input[i].ground - input[i].side - side; //iffy
         					canjump = true;
         				} 
         		return false;
@@ -206,7 +199,7 @@ class Sphere {
 	}
 	
 	public void jump() {
-			 if (positionY + RADIUS == HEIGHT || canjump) {
+			 if (positionY + side == HEIGHT - ground || canjump) {
 				 velocityY += -10; 
 				 canjump = false;
 				 //speed -= 10;
@@ -215,12 +208,9 @@ class Sphere {
 			 } 
     }
 
-	public void bounce() {
-        if (this.positionY < 0) {
-           	velocityY = -velocityY;
-           }
-        else if (this.positionY + RADIUS > HEIGHT) {
-        	positionY = HEIGHT - RADIUS;
+	public void ground() {
+        if (this.positionY + side > HEIGHT - ground) {
+        	positionY = HEIGHT - side - ground;
            	velocityY = 0;
            }
 	}
@@ -228,15 +218,17 @@ class Sphere {
 }
 
 class Obstacle{
-	double ObsX;
-	double ObsY;
 	double velocityX = 4 ; //for alter
 	double velocityY = 0; 
-	double gravity = 0;
+	double side = 50;
+	double ground = 50;
+	double ObsX = WIDTH - 50;
+	double ObsY = HEIGHT - side - ground;
+    public static final int WIDTH = 1024;
+    public static final int HEIGHT = 768;
 		
-	public Obstacle(double ObsX, double ObsY) {
-		this.ObsX = ObsX;
-		this.ObsY = ObsY;
+	public Obstacle(int input, int input2, int input3) {
+		ObsX = ObsX + (input3*input) + (input3*input2);
 	}
 	
     public void move() {
