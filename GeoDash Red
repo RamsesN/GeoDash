@@ -1,220 +1,237 @@
-package com.almasb.tutorial14;
+import javax.swing.JPanel;
+import javax.swing.JFrame;
+import java.awt.Color;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Rectangle;
+import java.awt.Dimension;
+import java.util.Random;
+import java.awt.event.KeyListener;
+import java.awt.event.KeyEvent;
+import java.io.File;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.Scanner;
+import java.io.*;
+import java.util.concurrent.TimeUnit;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
+public class GeoDash extends JPanel implements KeyListener{
+    public static final int WIDTH = 1024;
+    public static final int HEIGHT = 768;
+    public static final int FPS = 60;
+    public static final int RADIUS = 50;
 
-import javafx.animation.AnimationTimer;
-import javafx.application.Application;
-import javafx.geometry.Point2D;
-import javafx.scene.Node;
-import javafx.scene.Scene;
-import javafx.scene.input.KeyCode;
-import javafx.scene.layout.Pane;
-import javafx.scene.paint.Color;
-import javafx.scene.shape.Rectangle;
-import javafx.stage.Stage;
 
-public class Main extends Application {
+    String score;
+    int num = 5;
+    int num2 = 5;
+    Obstacle[] Array = new Obstacle[num]; 
+    Obstacle[] Array2 = new Obstacle[num2];
+    Sphere Something = new Sphere();   
+    boolean jumping;
 
-    private HashMap<KeyCode, Boolean> keys = new HashMap<KeyCode, Boolean>();
-
-    private ArrayList<Node> platforms = new ArrayList<Node>();
-    private ArrayList<Node> coins = new ArrayList<Node>();
-
-    private Pane appRoot = new Pane();
-    private Pane gameRoot = new Pane();
-    private Pane uiRoot = new Pane();
-
-    private Node player;
-    private Point2D playerVelocity = new Point2D(0, 0);
-    private boolean canJump = true;
-
-    private int levelWidth;
-
-    private boolean dialogEvent = false, running = true;
-
-    private void initContent() {
-        Rectangle bg = new Rectangle(1280, 720);
-
-        levelWidth = LevelData.LEVEL1[0].length() * 60;
-
-        for (int i = 0; i < LevelData.LEVEL1.length; i++) {
-            String line = LevelData.LEVEL1[i];
-            for (int j = 0; j < line.length(); j++) {
-                switch (line.charAt(j)) {
-                    case '0':
-                        break;
-                    case '1':
-                        Node platform = createEntity(j*60, i*60, 60, 60, Color.BROWN);
-                        platforms.add(platform);
-                        break;
-                    case '2':
-                        //Node coin = createEntity(j*60, i*60, 60, 60, Color.GOLD);
-                        //coins.add(coin);
-                        break;
+    
+    class Runner implements Runnable{
+        public Runner() {
+        	for (int i = 0; i < Array.length; i++ ) { 
+    		    Array[i] = new Obstacle(i, 0, 400);
+    			 }
+        	for (int j = 0; j < Array2.length; j++ ) { 
+    		    Array2[j] = new Obstacle(j, Array.length, 400); //fix
+    			 }
+        }
+        public void run()
+        {
+        	long timeElapsed = 0;
+        	long startTime = System.nanoTime();
+            while(Something.blueSquareCollision(Array) && Something.redSquareCollision(Array2)){
+            	Something.move(); 	
+            	Something.blueSquareCollision(Array);
+            	Something.redSquareCollision(Array2);
+            	Something.ground();	
+            	if (jumping) {
+            		Something.jump();
+            		jumping = false;
+            	}
+            	for (int i = 0; i < Array.length; i++ ) { 
+            		Array[i].move();
+            	}
+            	for (int i = 0; i < Array2.length; i++ ) { 
+            		Array2[i].move();
+            	}
+                repaint();
+                try{
+                    Thread.sleep(Something.speed/FPS);
+                    long endTime = System.nanoTime();
+                    timeElapsed = endTime - startTime;
+                    score = Long.toString(timeElapsed/189782);
                 }
+                catch(InterruptedException e){}
             }
+            System.out.println("Your Final Score is: " + score); 
+            
+            System.exit(3);
+        }     
+    }
+    
+    public void keyPressed(KeyEvent e) {
+    	char c=e.getKeyChar();	
+    	//System.out.println("You pressed down: " + c);
+    	if (c == 'w') {
+    		jumping = true;
+    	}
+    	else if(c == 'q')
+    		System.exit(1);
+    }
+    public void keyReleased(KeyEvent e) {
+    	//char c=e.getKeyChar();
+    	//System.out.println("\tYou let go of: " + c);
+       }
+    public void keyTyped(KeyEvent e) {
+    	//char c = e.getKeyChar();
+    	//System.out.println("You typed: " + c);
+    }
+    public void addNotify() {
+        super.addNotify();
+        requestFocus();
+    }
+    public GeoDash(){
+        addKeyListener(this);
+        this.setPreferredSize(new Dimension(WIDTH, HEIGHT));
+        Thread mainThread = new Thread(new Runner());
+        mainThread.start();
+    }
+    public static void main(String[] args){
+        JFrame frame = new JFrame("GeoDash");
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        GeoDash world = new GeoDash();
+        frame.setContentPane(world);
+        frame.pack();
+        frame.setVisible(true);
+    }
+    public void paintComponent(Graphics g) {
+        super.paintComponent(g);       
+        //board
+        g.setColor(Color.BLACK);
+        g.fillRect(0, 0, WIDTH, HEIGHT);
+        //player
+        g.setColor(Color.WHITE);
+        g.fillRect((int)Something.positionX, (int)Something.positionY,  (int)Something.side,  (int)Something.side);
+        //obstacle
+        g.setColor(Color.BLUE);
+    	for (int i = 0; i < Array.length; i++ ) { 
+    		g.fillRect((int)Array[i].ObsX,(int)Array[i].ObsY, (int)Array[i].side, (int)Array[i].side);
+    	}
+    	//red
+    	g.setColor(Color.RED);
+    	for (int i = 0; i < Array2.length; i++ ) { 
+    		g.fillRect((int)Array2[i].ObsX,(int)Array2[i].ObsY, (int)Array2[i].side, (int)Array2[i].side);
+    	}
+    	//title
+        String title = "GEODASH";
+        g.setColor(Color.WHITE);
+        g.drawString(title, WIDTH/2, 200);
+        //quit button
+        Rectangle quitButton = new Rectangle(10, 50, 100, 37);
+        g.drawString("QUIT = Q", quitButton.x + 19, quitButton.y + 29);
+        Graphics2D g2d = (Graphics2D) g;
+        g2d.draw(quitButton);
+        //score
+        g.drawString("Your score: " + this.score, 900, 37);
+     }    
+}
+
+/*public class LevelData {
+    public static final String[] LEVEL1 = new String[] {
+        "0010101",
+    };
+}*/
+
+class Sphere {
+    double velocityY = 0;
+    double gravity = 0.4;
+    double side = 50;
+    double ground = 0;
+    double positionX = 100;
+    double positionY = HEIGHT - side - ground;
+    boolean canjump = false;
+    int speed = 500;
+  
+    public static final int WIDTH = 1024;
+    public static final int HEIGHT = 768;
+
+	
+	public void move() {
+         this.positionY += velocityY; 
+         this.velocityY += gravity;
+	}
+	public boolean blueOverlaps (Obstacle input) {
+	    return positionX <= input.ObsX + input.side && positionX + side >= input.ObsX && positionY <= input.ObsY + input.side && positionY + side > input.ObsY;
+	}          
+	public boolean redOverlaps (Obstacle input) {
+		return positionX <= input.ObsX + input.side && positionX + side >= input.ObsX && positionY <= input.ObsY + input.side && positionY + side >= input.ObsY;
+	}   
+	public boolean blueSquareCollision(Obstacle input[]) {
+        for (int i = 0; i < input.length; i++ ) { 	 
+        	if(this.blueOverlaps(input[i])) {									
+        				if (this.positionY + side > input[i].ObsY) {      //RAD>  if base of sphere lower than top of obs
+        					this.velocityY = 0;	
+        					this.positionY  = HEIGHT - input[i].ground - input[i].side - side;  // iffy
+        					canjump = true;
+        				} 
+        		return false;
+        	}
         }
-
-        player = createEntity(0, 600, 40, 40, Color.BLUE);
-
-        player.translateXProperty().addListener((obs, old, newValue) -> {
-            int offset = newValue.intValue();
-
-            if (offset > 640 && offset < levelWidth - 640) {
-                gameRoot.setLayoutX(-(offset - 640));
-            }
-        });
-
-        appRoot.getChildren().addAll(bg, gameRoot, uiRoot);
+     return true;  
+	}	
+	public boolean redSquareCollision(Obstacle input[]) {
+        for (int i = 0; i < input.length; i++ ) { 	 
+        	if(this.redOverlaps(input[i])) {								
+        				if (this.positionY + side > input[i].ObsY) {      //RAD>  if base of sphere lower than top of obs
+        					this.velocityY = 0;	
+        					this.positionY  = HEIGHT - input[i].ground - input[i].side - side; //iffy
+        					canjump = true;
+        				} 
+        		return false;
+        	}  
+        }
+     return true;  
+	}
+	
+	public void jump() {
+			 if (positionY + side == HEIGHT - ground || canjump) {
+				 velocityY += -10; 
+				 canjump = false;
+				 //speed -= 10;
+				 //if (speed <= 300)
+					 //speed = 300;
+			 } 
     }
 
-    private void update() {
-        if (isPressed(KeyCode.W) && player.getTranslateY() >= -5) {
-            jumpPlayer();
-        }
+	public void ground() {
+        if (this.positionY + side > HEIGHT - ground) {
+        	positionY = HEIGHT - side - ground;
+           	velocityY = 0;
+           }
+	}
+         
+}
 
-        if (isPressed(KeyCode.A) && player.getTranslateX() >= 5) {
-            movePlayerX(-5);
-        }
-
-        if (isPressed(KeyCode.D) && player.getTranslateX() + 40 <= levelWidth - 5) {
-            movePlayerX(5);
-        }
-
-        if (playerVelocity.getY() < 10) {
-            playerVelocity = playerVelocity.add(0, 1);
-        }
-
-        movePlayerY((int)playerVelocity.getY());
-
-        for (Node coin : coins) {
-            if (player.getBoundsInParent().intersects(coin.getBoundsInParent())) {
-                coin.getProperties().put("alive", false);
-                dialogEvent = true;
-                running = false;
-            }
-        }
-
-        for (Iterator<Node> it = coins.iterator(); it.hasNext(); ) {
-            Node coin = it.next();
-            if (!(Boolean)coin.getProperties().get("alive")) {
-                it.remove();
-                gameRoot.getChildren().remove(coin);
-            }
-        }
-    }
-
-    private void movePlayerX(int value) {
-        boolean movingRight = value > 0;
-
-        for (int i = 0; i < Math.abs(value); i++) {
-            for (Node platform : platforms) {
-                if (player.getBoundsInParent().intersects(platform.getBoundsInParent())) {
-                    if (movingRight) {
-                        if (player.getTranslateX() + 40 == platform.getTranslateX()) {
-                            return;
-                        }
-                    }
-                    else {
-                        if (player.getTranslateX() == platform.getTranslateX() + 60) {
-                            return;
-                        }
-                    }
-                }
-            }
-            player.setTranslateX(player.getTranslateX() + (movingRight ? 1 : -1));
-        }
-    }
-
-    private void movePlayerY(int value) {
-        boolean movingDown = value > 0;
-
-        for (int i = 0; i < Math.abs(value); i++) {
-            for (Node platform : platforms) {
-                if (player.getBoundsInParent().intersects(platform.getBoundsInParent())) {
-                    if (movingDown) {
-                        if (player.getTranslateY() + 40 == platform.getTranslateY()) {
-                            player.setTranslateY(player.getTranslateY() - 1);
-                            canJump = true;
-                            return;
-                        }
-                    }
-                    else {
-                        if (player.getTranslateY() == platform.getTranslateY() + 60) {
-                        	return;
-                        }
-                    }
-                }
-            }
-            player.setTranslateY(player.getTranslateY() + (movingDown ? 1 : -1));
-        }
-    }
-
-    private void jumpPlayer() {
-        if (canJump) {
-            playerVelocity = playerVelocity.add(0, -30);
-            canJump = false;
-        }
-    }
-
-    private Node createEntity(int x, int y, int w, int h, Color color) {
-        Rectangle entity = new Rectangle(w, h);
-        entity.setTranslateX(x);
-        entity.setTranslateY(y);
-        entity.setFill(color);
-        entity.getProperties().put("alive", true);
-
-        gameRoot.getChildren().add(entity);
-        return entity;
-    }
-
-    private boolean isPressed(KeyCode key) {
-        return keys.getOrDefault(key, false);
-    }
-
-    @Override
-    public void start(Stage primaryStage) throws Exception {
-        initContent();
-
-        Scene scene = new Scene(appRoot);
-        scene.setOnKeyPressed(event -> keys.put(event.getCode(), true));
-        scene.setOnKeyReleased(event -> keys.put(event.getCode(), false));
-        primaryStage.setTitle("Tutorial 14 Platformer");
-        primaryStage.setScene(scene);
-        primaryStage.show();
-
-        AnimationTimer timer = new AnimationTimer() {
-            @Override
-            public void handle(long now) {
-                if (running) {
-                    update();
-                }
-
-                if (dialogEvent) {
-                    dialogEvent = false;
-                    keys.keySet().forEach(key -> keys.put(key, false));
-
-                    GameDialog dialog = new GameDialog();
-                    dialog.setOnCloseRequest(event -> {
-                        if (dialog.isCorrect()) {
-                            System.out.println("Correct");
-                        }
-                        else {
-                            System.out.println("Wrong");
-                        }
-
-                        running = true;
-                    });
-                    dialog.open();
-                }
-            }
-        };
-        timer.start();
-    }
-
-    public static void main(String[] args) {
-        launch(args);
+class Obstacle{
+	double velocityX = 4 ; //for alter
+	double velocityY = 0; 
+	double side = 50;
+	double ground = 0;
+	double ObsX = WIDTH - 50;
+	double ObsY = HEIGHT - side - ground;
+    public static final int WIDTH = 1024;
+    public static final int HEIGHT = 768;
+		
+	public Obstacle(int input, int input2, int input3) {
+		ObsX = ObsX + (input3*input) + (input3*input2);
+	}
+	
+    public void move() {
+	    this.ObsX -= velocityX; 
     }
 }
