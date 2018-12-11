@@ -13,6 +13,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Scanner;
 import java.io.*;
+import java.util.concurrent.TimeUnit;
 
 public class GeoDash extends JPanel implements KeyListener{
     public static final int WIDTH = 1024;
@@ -38,7 +39,9 @@ public class GeoDash extends JPanel implements KeyListener{
         }
         public void run()
         {
-            while(true){
+        	long timeElapsed = 0;
+        	long startTime = System.nanoTime();
+            while(Something.squareCollision(Array)){
             	Something.move(); 	
             	Something.squareCollision(Array);
             	Something.bounce();
@@ -49,9 +52,14 @@ public class GeoDash extends JPanel implements KeyListener{
                 repaint();
                 try{
                     Thread.sleep(1000/FPS);
+                    long endTime = System.nanoTime();
+                    timeElapsed = endTime - startTime;
                 }
                 catch(InterruptedException e){}
             }
+            System.out.println(timeElapsed);
+            System.exit(3);
+            
         }     
     }
     
@@ -139,22 +147,24 @@ class Sphere {
 	    return positionX < input.ObsX + 50 && positionX + 50 > input.ObsX && positionY < input.ObsY + 50 && positionY + 50 > input.ObsY;
 		
 	}
-	public void squareCollision(Obstacle Array[]) {
+	public boolean squareCollision(Obstacle Array[]) {
         for (int i = 0; i < Array.length; i++ ) { 	 
         	if(this.overlaps(Array[i])) {
         		if (velocityY >  0) {
         			if (this.positionY + RADIUS < HEIGHT) {          //if sphere not on ground (or platform)									
         				if (this.positionY + RADIUS > Array[i].ObsY) {      //RAD>  if base of sphere lower than top of obs
-        					this.velocityY = 0;								//sphere velocity = 0 
+        					this.velocityY = 0;	
+        					//sphere velocity = 0 
         				} 
         			}
         			else  
-        				System.exit(1);
+        				//System.exit(1);
+        				return false;
         		}
         	}
         	
         }
-       
+     return true;  
 	}
 	
 	public void jump() {
@@ -196,4 +206,3 @@ class Obstacle{
 	    this.ObsX -= velocityX; 
     }
 }
-
