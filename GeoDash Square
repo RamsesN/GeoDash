@@ -27,6 +27,7 @@ public class GeoDash extends JPanel implements KeyListener{
     //Note: The following are not used yet, you should use them in writing your code.
     double velocityX;
     double velocityY;
+    String score;
     int num = 20;
     Obstacle[] Array = new Obstacle[num]; 
     
@@ -54,10 +55,12 @@ public class GeoDash extends JPanel implements KeyListener{
                     Thread.sleep(1000/FPS);
                     long endTime = System.nanoTime();
                     timeElapsed = endTime - startTime;
+                    score = Long.toString(timeElapsed/189782);
                 }
                 catch(InterruptedException e){}
             }
-            System.out.println(timeElapsed);
+            System.out.println("Your Final Score is: " + score);
+            
             System.exit(3);
             
         }     
@@ -119,6 +122,9 @@ public class GeoDash extends JPanel implements KeyListener{
        g.drawString("Quit = q", quitButton.x + 19, quitButton.y + 29);
        Graphics2D g2d = (Graphics2D) g;
        g2d.draw(quitButton);
+       
+       g.drawString("Your score: " + this.score, 900, 37);
+
      }    
 }
 
