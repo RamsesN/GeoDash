@@ -15,7 +15,7 @@ import java.util.Scanner;
 import java.io.*;
 import java.util.concurrent.TimeUnit;
 
-public class GeoDash extends JPanel implements KeyListener{
+public class GeoDash2 extends JPanel implements KeyListener{
     public static final int WIDTH = 1024;
     public static final int HEIGHT = 768;
     public static final int FPS = 60;
@@ -24,18 +24,19 @@ public class GeoDash extends JPanel implements KeyListener{
     double positionY = HEIGHT - RADIUS;
     double ObsX = WIDTH - 50;
     double ObsY = HEIGHT - RADIUS;
-    //Note: The following are not used yet, you should use them in writing your code.
     double velocityX;
     double velocityY;
     String score;
     int num = 20;
     Obstacle[] Array = new Obstacle[num]; 
+    Sphere Something = new Sphere(positionX, positionY);   
+    boolean jumping;
+
     
-    Sphere Something = new Sphere(positionX, positionY);    
     class Runner implements Runnable{
         public Runner() {
         	for (int i = 0; i < Array.length; i++ ) { 
-    		    Array[i] = new Obstacle(ObsX+(200*i), ObsY);
+    		    Array[i] = new Obstacle(ObsX+(300*i), ObsY);
     			 }
         }
         public void run()
@@ -45,49 +46,51 @@ public class GeoDash extends JPanel implements KeyListener{
             while(Something.squareCollision(Array)){
             	Something.move(); 	
             	Something.squareCollision(Array);
-            	Something.bounce();
-            	Something.jump();
+            	Something.bounce();	
+            	if (jumping) {
+            		Something.jump();
+            		jumping = false;
+            	}
             	for (int i = 0; i < Array.length; i++ ) { 
             		Array[i].move();
             	}
                 repaint();
                 try{
-                    Thread.sleep(1000/FPS);
+                    Thread.sleep(Something.speed/FPS);
                     long endTime = System.nanoTime();
                     timeElapsed = endTime - startTime;
                     score = Long.toString(timeElapsed/189782);
                 }
                 catch(InterruptedException e){}
             }
-            System.out.println("Your Final Score is: " + score);
+            System.out.println("Your Final Score is: " + score); 
             
             System.exit(3);
-            
         }     
     }
     
     public void keyPressed(KeyEvent e) {
     	char c=e.getKeyChar();	
-    	System.out.println("You pressed down: " + c);
+    	//System.out.println("You pressed down: " + c);
     	if (c == ' ') {
-    		Something.Up(true); 
+    		jumping = true;
     	}
     	else if(c == 'q')
     		System.exit(1);
     }
     public void keyReleased(KeyEvent e) {
-    	char c=e.getKeyChar();
-    	System.out.println("\tYou let go of: " + c);
+    	//char c=e.getKeyChar();
+    	//System.out.println("\tYou let go of: " + c);
        }
     public void keyTyped(KeyEvent e) {
-    	char c = e.getKeyChar();
-    	System.out.println("You typed: " + c);
+    	//char c = e.getKeyChar();
+    	//System.out.println("You typed: " + c);
     }
     public void addNotify() {
         super.addNotify();
         requestFocus();
     }
-    public GeoDash(){
+    public GeoDash2(){
         addKeyListener(this);
         this.setPreferredSize(new Dimension(WIDTH, HEIGHT));
         Thread mainThread = new Thread(new Runner());
@@ -96,16 +99,17 @@ public class GeoDash extends JPanel implements KeyListener{
     public static void main(String[] args){
         JFrame frame = new JFrame("GeoDash");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        GeoDash world = new GeoDash();
+        GeoDash2 world = new GeoDash2();
         frame.setContentPane(world);
         frame.pack();
         frame.setVisible(true);
     }
     public void paintComponent(Graphics g) {
-        super.paintComponent(g);            
+        super.paintComponent(g);       
+        //board
         g.setColor(Color.BLACK);
         g.fillRect(0, 0, WIDTH, HEIGHT);
-        //sphere
+        //player
         g.setColor(Color.WHITE);
         g.fillRect((int)Something.positionX, (int)Something.positionY,  RADIUS,  RADIUS);
         //obstacle
@@ -113,18 +117,17 @@ public class GeoDash extends JPanel implements KeyListener{
     	for (int i = 0; i < Array.length; i++ ) { 
     		g.fillRect((int)Array[i].ObsX,(int)Array[i].ObsY, RADIUS, RADIUS);
     	}
-    	
-       String title = "GeoDash";
-       g.setColor(Color.WHITE);
-       g.drawString(title, WIDTH/2, 200);
-       
-       Rectangle quitButton = new Rectangle(10, 50, 100, 37);
-       g.drawString("Quit = q", quitButton.x + 19, quitButton.y + 29);
-       Graphics2D g2d = (Graphics2D) g;
-       g2d.draw(quitButton);
-       
-       g.drawString("Your score: " + this.score, 900, 37);
-
+    	//title
+        String title = "GEODASH";
+        g.setColor(Color.WHITE);
+        g.drawString(title, WIDTH/2, 200);
+        //quit button
+        Rectangle quitButton = new Rectangle(10, 50, 100, 37);
+        g.drawString("QUIT = Q", quitButton.x + 19, quitButton.y + 29);
+        Graphics2D g2d = (Graphics2D) g;
+        g2d.draw(quitButton);
+        //score
+        g.drawString("Your score: " + this.score, 900, 37);
      }    
 }
 
@@ -133,8 +136,9 @@ class Sphere {
     double positionY;
     double velocityX = 0;
     double velocityY = 0;
-    double gravity = 0.5;
-    boolean up;
+    double gravity = 0.45;
+    boolean canjump = false;
+    int speed = 500;
   
     public static final int WIDTH = 1024;
     public static final int HEIGHT = 768;
@@ -149,37 +153,34 @@ class Sphere {
          this.velocityY += gravity;
 	}
 	public boolean overlaps (Obstacle input) {
-	
 	    return positionX < input.ObsX + 50 && positionX + 50 > input.ObsX && positionY < input.ObsY + 50 && positionY + 50 > input.ObsY;
-		
-	}
+	}          
 	public boolean squareCollision(Obstacle Array[]) {
         for (int i = 0; i < Array.length; i++ ) { 	 
         	if(this.overlaps(Array[i])) {
-        		if (velocityY >  0) {
-        			if (this.positionY + RADIUS < HEIGHT) {          //if sphere not on ground (or platform)									
+        		//if (velocityY >=  0) {
+        			//if (this.positionY + RADIUS != HEIGHT ) {          //if sphere not on ground (or platform)									
         				if (this.positionY + RADIUS > Array[i].ObsY) {      //RAD>  if base of sphere lower than top of obs
         					this.velocityY = 0;	
+        					this.positionY = HEIGHT - 2*RADIUS;  // iffy
         					//sphere velocity = 0 
+        					canjump = true;
         				} 
-        			}
-        			else  
-        				//System.exit(1);
-        				return false;
-        		}
-        	}
+        			//}
+        		//}
+        		return false;
+        	} 
         	
         }
      return true;  
 	}
 	
 	public void jump() {
-		 if (up) {
-			 if (positionY + RADIUS == HEIGHT || positionY + 2*RADIUS == HEIGHT) {
+			 if (positionY + RADIUS == HEIGHT || canjump) {
 				 velocityY += -10; 
-				 up = false; 
-			 }
-		 }
+				 canjump = false;
+				 speed -= 10;
+			 } 
     }
 
 	public void bounce() {
@@ -191,15 +192,13 @@ class Sphere {
            	velocityY = 0;
            }
 	}
-	public void Up(boolean input) {
-		up = input;
-	}
+         
 }
 
 class Obstacle{
 	double ObsX;
 	double ObsY;
-	double velocityX = 3; //for alter
+	double velocityX = 3 ; //for alter
 	double velocityY = 0; 
 	double gravity = 0;
 		
