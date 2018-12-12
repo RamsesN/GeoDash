@@ -85,13 +85,13 @@ public class GeoDash2 extends JPanel implements KeyListener{
         {
         	long timeElapsed = 0;
         	long startTime = System.nanoTime();
-            while(Something.blueSquareCollision(Array) && Something.redSquareCollision(Array2)){
+            while(Something.blueSquareCollision(Array) && Something.redSquareCollision(Array2) && Something.positionY + Something.side < HEIGHT){
             	Something.move(); 	
             	Something.blueSquareCollision(Array);
             	Something.redSquareCollision(Array2);
             	Something.yellowSquareCollision(Array3);
 
-            	Something.ground();	
+            	//Something.ground();	
             	if (jumping) {
             		Something.jump();
             		jumping = false;
@@ -306,14 +306,6 @@ class Sphere {
 					 //speed = 300;
 			 } 
     }
-
-	public void ground() {
-        if (this.positionY + side > HEIGHT) {
-        	//positionY = HEIGHT - side - ground;
-           	//velocityY = 0;
-        	System.exit(1);
-           }
-	}
          
 }
 
