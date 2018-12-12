@@ -1,4 +1,6 @@
 import javax.swing.JPanel;
+
+
 import javax.swing.JFrame;
 import java.awt.Color;
 import java.awt.Graphics;
@@ -15,7 +17,7 @@ import java.util.Scanner;
 import java.io.*;
 import java.util.concurrent.TimeUnit;
 
-public class GeoDash extends JPanel implements KeyListener{
+public class GeoDash2 extends JPanel implements KeyListener{
     public static final int WIDTH = 1024;
     public static final int HEIGHT = 768;
     public static final int FPS = 60;
@@ -23,23 +25,52 @@ public class GeoDash extends JPanel implements KeyListener{
 
 
     String score;
-    int num = 5;
-    int num2 = 5;
-    Obstacle[] Array = new Obstacle[num]; 
-    Obstacle[] Array2 = new Obstacle[num2];
+    //int num = 5;
+    //int num2 = 5;
+    //Obstacle[] Array = new Obstacle[num]; 
+    //Obstacle[] Array2 = new Obstacle[num2];
     Sphere Something = new Sphere();   
+    Obstacle[][] Array = new Obstacle[15][30]; //fix
+    Obstacle[][] Array2 = new Obstacle[15][30];
     boolean jumping;
+    int levelWidth;
 
     
     class Runner implements Runnable{
         public Runner() {
-        	for (int i = 0; i < Array.length; i++ ) { 
+        /*	for (int i = 0; i < Array.length; i++ ) { 
     		    Array[i] = new Obstacle(i, 0, 400);
     			 }
         	for (int j = 0; j < Array2.length; j++ ) { 
     		    Array2[j] = new Obstacle(j, Array.length, 400); //fix
-    			 }
+    			 } */
+        	
+        	
+        	for (int i = 0; i < LevelData.LEVEL1.length; i++) {
+        		String line = LevelData.LEVEL1[i];
+        		for (int j = 0; j < line.length(); j++) {
+        			switch (line.charAt(j)) {
+        			case '0':
+        				Array[i][j] = new Obstacle(0, 0);
+        				Array2[i][j] = new Obstacle(0,0);
+        				break;
+        			case '1':
+        				Array[i][j] = new Obstacle(j, i);
+        				Array2[i][j] = new Obstacle(0,0);
+        				break;
+        			case '2':
+        				Array[i][j] = new Obstacle(0, 0);
+        				Array2[i][j] = new Obstacle(j, i);
+        				break;
+        				//Node coin = createEntity(j*60, i*60, 60, 60, Color.GOLD);
+        				//coins.add(coin);
+        			//	break;
+        			}
+        		}
+        	}
         }
+
+        
         public void run()
         {
         	long timeElapsed = 0;
@@ -53,12 +84,16 @@ public class GeoDash extends JPanel implements KeyListener{
             		Something.jump();
             		jumping = false;
             	}
-            	for (int i = 0; i < Array.length; i++ ) { 
-            		Array[i].move();
+            	for (int i = 0; i < LevelData.LEVEL1.length; i++) {
+            		String line = LevelData.LEVEL1[i];
+            		for (int j = 0; j < line.length(); j++) {
+            		Array[i][j].move();
+            		Array2[i][j].move();
+            		}
             	}
-            	for (int i = 0; i < Array2.length; i++ ) { 
+            	/*for (int i = 0; i < Array2.length; i++ ) { 
             		Array2[i].move();
-            	}
+            	}*/
                 repaint();
                 try{
                     Thread.sleep(Something.speed/FPS);
@@ -95,7 +130,7 @@ public class GeoDash extends JPanel implements KeyListener{
         super.addNotify();
         requestFocus();
     }
-    public GeoDash(){
+    public GeoDash2(){
         addKeyListener(this);
         this.setPreferredSize(new Dimension(WIDTH, HEIGHT));
         Thread mainThread = new Thread(new Runner());
@@ -104,7 +139,7 @@ public class GeoDash extends JPanel implements KeyListener{
     public static void main(String[] args){
         JFrame frame = new JFrame("GeoDash");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        GeoDash world = new GeoDash();
+        GeoDash2 world = new GeoDash2();
         frame.setContentPane(world);
         frame.pack();
         frame.setVisible(true);
@@ -119,13 +154,19 @@ public class GeoDash extends JPanel implements KeyListener{
         g.fillRect((int)Something.positionX, (int)Something.positionY,  (int)Something.side,  (int)Something.side);
         //obstacle
         g.setColor(Color.BLUE);
-    	for (int i = 0; i < Array.length; i++ ) { 
-    		g.fillRect((int)Array[i].ObsX,(int)Array[i].ObsY, (int)Array[i].side, (int)Array[i].side);
+        for (int i = 0; i < LevelData.LEVEL1.length; i++) {
+    		String line = LevelData.LEVEL1[i];
+    		for (int j = 0; j < line.length(); j++) {
+    		g.fillRect((int)Array[i][j].ObsX,(int)Array[i][j].ObsY, (int)Array[i][j].side, (int)Array[i][j].side);
+    		}
     	}
     	//red
     	g.setColor(Color.RED);
-    	for (int i = 0; i < Array2.length; i++ ) { 
-    		g.fillRect((int)Array2[i].ObsX,(int)Array2[i].ObsY, (int)Array2[i].side, (int)Array2[i].side);
+        for (int i = 0; i < LevelData.LEVEL1.length; i++) {
+    		String line = LevelData.LEVEL1[i];
+    		for (int j = 0; j < line.length(); j++) {
+    		g.fillRect((int)Array2[i][j].ObsX,(int)Array2[i][j].ObsY, (int)Array2[i][j].side, (int)Array2[i][j].side);
+    		}
     	}
     	//title
         String title = "GEODASH";
@@ -141,21 +182,17 @@ public class GeoDash extends JPanel implements KeyListener{
      }    
 }
 
-/*public class LevelData {
-    public static final String[] LEVEL1 = new String[] {
-        "0010101",
-    };
-}*/
+
 
 class Sphere {
     double velocityY = 0;
     double gravity = 0.4;
-    double side = 50;
-    double ground = 0;
+    double side = 20;
+    double ground = 70;
     double positionX = 100;
     double positionY = HEIGHT - side - ground;
     boolean canjump = false;
-    int speed = 500;
+    int speed = 1000;
   
     public static final int WIDTH = 1024;
     public static final int HEIGHT = 768;
@@ -171,32 +208,39 @@ class Sphere {
 	public boolean redOverlaps (Obstacle input) {
 		return positionX <= input.ObsX + input.side && positionX + side >= input.ObsX && positionY <= input.ObsY + input.side && positionY + side >= input.ObsY;
 	}   
-	public boolean blueSquareCollision(Obstacle input[]) {
-        for (int i = 0; i < input.length; i++ ) { 	 
-        	if(this.blueOverlaps(input[i])) {									
-        				if (this.positionY + side > input[i].ObsY) {      //RAD>  if base of sphere lower than top of obs
+	public boolean blueSquareCollision(Obstacle input[][]) {
+		for (int i = 0; i < LevelData.LEVEL1.length; i++) {
+    		String line = LevelData.LEVEL1[i];
+    		for (int j = 0; j < line.length(); j++) {
+        	if(this.blueOverlaps(input[i][j])) {									
+        				if (this.positionY + side > input[i][j].ObsY) {      //RAD>  if base of sphere lower than top of obs
         					this.velocityY = 0;	
-        					this.positionY  = HEIGHT - input[i].ground - input[i].side - side;  // iffy
+        					this.positionY  = input[i][j].ObsY - side;  // iffy
         					canjump = true;
         				} 
         		return false;
         	}
+    		}
         }
      return true;  
 	}	
-	public boolean redSquareCollision(Obstacle input[]) {
-        for (int i = 0; i < input.length; i++ ) { 	 
-        	if(this.redOverlaps(input[i])) {								
-        				if (this.positionY + side > input[i].ObsY) {      //RAD>  if base of sphere lower than top of obs
+	
+	public boolean redSquareCollision(Obstacle input[][]) {
+		for (int i = 0; i < LevelData.LEVEL1.length; i++) {
+    		String line = LevelData.LEVEL1[i];
+    		for (int j = 0; j < line.length(); j++) {
+        	if(this.redOverlaps(input[i][j])) {									
+        				if (this.positionY + side > input[i][j].ObsY) {      //RAD>  if base of sphere lower than top of obs
         					this.velocityY = 0;	
-        					this.positionY  = HEIGHT - input[i].ground - input[i].side - side; //iffy
+        					this.positionY  = input[i][j].ObsY - side;  // iffy
         					canjump = true;
         				} 
         		return false;
-        	}  
+        	}
+    		}
         }
      return true;  
-	}
+	}	
 	
 	public void jump() {
 			 if (positionY + side == HEIGHT - ground || canjump) {
@@ -209,26 +253,28 @@ class Sphere {
     }
 
 	public void ground() {
-        if (this.positionY + side > HEIGHT - ground) {
-        	positionY = HEIGHT - side - ground;
-           	velocityY = 0;
+        if (this.positionY + side > HEIGHT) {
+        	//positionY = HEIGHT - side - ground;
+           	//velocityY = 0;
+        	System.exit(1);
            }
 	}
          
 }
 
 class Obstacle{
-	double velocityX = 4 ; //for alter
+	double velocityX = 2 ; //for alter (4)w
 	double velocityY = 0; 
 	double side = 50;
 	double ground = 0;
-	double ObsX = WIDTH - 50;
-	double ObsY = HEIGHT - side - ground;
+	double ObsX = 0;
+	double ObsY = 0;
     public static final int WIDTH = 1024;
     public static final int HEIGHT = 768;
 		
-	public Obstacle(int input, int input2, int input3) {
-		ObsX = ObsX + (input3*input) + (input3*input2);
+	public Obstacle(double input1, double input2) { //fix
+		ObsX = input1 * 50;
+		ObsY = input2 * 50;
 	}
 	
     public void move() {
